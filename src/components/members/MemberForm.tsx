@@ -33,11 +33,11 @@ type MemberFormData = z.infer<typeof memberSchema>;
 
 interface MemberFormProps {
   member?: Member;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export function MemberForm({ member, open, onOpenChange }: MemberFormProps) {
+export function MemberForm({ member, open = false, onOpenChange }: MemberFormProps) {
   const { createMember, updateMember, members } = useMembersStore();
   const { settings } = useSettingsStore();
   const { toast } = useToast();
@@ -119,7 +119,7 @@ export function MemberForm({ member, open, onOpenChange }: MemberFormProps) {
         });
       }
 
-      onOpenChange(false);
+      onOpenChange?.(false);
       reset();
     } catch (error) {
       toast({

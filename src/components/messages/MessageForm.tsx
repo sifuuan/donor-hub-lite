@@ -29,8 +29,9 @@ type MessageFormData = z.infer<typeof messageSchema>;
 
 interface MessageFormProps {
   preselectedMember?: Member;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  onSuccess?: () => void;
 }
 
 const messageTemplates = {
@@ -48,7 +49,7 @@ const messageTemplates = {
   },
 };
 
-export function MessageForm({ preselectedMember, open, onOpenChange }: MessageFormProps) {
+export function MessageForm({ preselectedMember, open = false, onOpenChange, onSuccess }: MessageFormProps) {
   const { createMessage, createBulkReminders } = useMessagesStore();
   const { members } = useMembersStore();
   const { payments } = usePaymentsStore();
@@ -186,7 +187,8 @@ export function MessageForm({ preselectedMember, open, onOpenChange }: MessageFo
         });
       }
 
-      onOpenChange(false);
+      onOpenChange?.(false);
+      onSuccess?.();
       reset();
     } catch (error) {
       toast({

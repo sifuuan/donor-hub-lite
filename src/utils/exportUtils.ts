@@ -163,3 +163,108 @@ export function downloadFile(content: string, filename: string, type: string = '
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
 }
+
+export function exportMonthlyReportPDF(
+  members: Member[], 
+  payments: Payment[], 
+  settings: Settings,
+  month: Date = new Date()
+): void {
+  return generateMonthlyReportPDF(members, payments, settings, month);
+}
+
+export function exportMonthlyReportCSV(
+  members: Member[], 
+  payments: Payment[], 
+  settings: Settings,
+  month: Date = new Date()
+): string {
+  const activeMembers = members.filter(m => m.active).length;
+  const expectedIncome = getMonthlyExpectedIncome(members);
+  const collectedIncome = getMonthlyCollected(payments, month);
+  const unpaidCount = payments.filter(p => p.status === 'unpaid').length;
+  const overdueCount = payments.filter(p => p.status === 'overdue').length;
+
+  const csvData = [
+    ['Monthly Report', formatDate(month, 'MMMM yyyy')],
+    [''],
+    ['Active Members', activeMembers],
+    ['Expected Monthly Income', expectedIncome],
+    ['Collected This Month', collectedIncome],
+    ['Unpaid Payments', unpaidCount],
+    ['Overdue Payments', overdueCount],
+    ['Collection Rate (%)', expectedIncome > 0 ? ((collectedIncome / expectedIncome) * 100).toFixed(1) : 0]
+  ];
+
+  return Papa.unparse(csvData);
+}
+
+export function exportAnnualSummaryPDF(
+  members: Member[], 
+  payments: Payment[], 
+  settings: Settings,
+  year: number = new Date().getFullYear()
+): void {
+  const doc = new jsPDF();
+  const pageWidth = doc.internal.pageSize.width;
+  let yPosition = 20;
+
+  // Header
+  doc.setFontSize(20);
+  doc.text(settings.org_name, pageWidth / 2, yPosition, { align: 'center' });
+  yPosition += 10;
+
+  doc.setFontSize(12);
+  doc.text(settings.org_address, pageWidth / 2, yPosition, { align: 'center' });
+  yPosition += 20;
+
+  doc.setFontSize(16);
+  doc.text(`Annual Summary - ${year}`, pageWidth / 2, yPosition, { align: 'center' });
+  yPosition += 20;
+
+  // Annual statistics
+  const yearPayments = payments.filter(p => new Date(p.payment_date).getFullYear() === year);
+  const totalCollected = yearPayments.reduce((sum, p) => sum + p.amount, 0);
+  const activeMembers = members.filter(m => m.active).length;
+
+  doc.setFontSize(12);
+  const stats = [
+    `Total Members: ${members.length}`,
+    `Active Members: ${activeMembers}`,
+    `Total Collected: ${formatCurrency(totalCollected, settings.default_currency)}`,
+    `Total Payments: ${yearPayments.length}`
+  ];
+
+  stats.forEach(stat => {
+    doc.text(stat, 20, yPosition);
+    yPosition += 8;
+  });
+
+  // Footer
+  doc.setFontSize(10);
+  doc.text(`Generated on ${formatDate(new Date())}`, 20, doc.internal.pageSize.height - 10);
+
+  doc.save(`annual-summary-${year}.pdf`);
+}
+
+export function exportAnnualSummaryCSV(
+  members: Member[], 
+  payments: Payment[], 
+  settings: Settings,
+  year: number = new Date().getFullYear()
+): string {
+  const yearPayments = payments.filter(p => new Date(p.payment_date).getFullYear() === year);
+  const totalCollected = yearPayments.reduce((sum, p) => sum + p.amount, 0);
+  const activeMembers = members.filter(m => m.active).length;
+
+  const csvData = [
+    ['Annual Summary', year],
+    [''],
+    ['Total Members', members.length],
+    ['Active Members', activeMembers],
+    ['Total Collected', totalCollected],
+    ['Total Payments', yearPayments.length]
+  ];
+
+  return Papa.unparse(csvData);
+}

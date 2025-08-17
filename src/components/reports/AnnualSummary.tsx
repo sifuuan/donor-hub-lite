@@ -73,7 +73,7 @@ export function AnnualSummary() {
 
   const handleExportPDF = async () => {
     try {
-      await exportAnnualSummaryPDF(annualData, settings);
+      await exportAnnualSummaryPDF(members, payments, settings, parseInt(selectedYear));
       toast({
         title: 'PDF exported',
         description: 'Annual summary has been downloaded.'
@@ -89,7 +89,18 @@ export function AnnualSummary() {
 
   const handleExportCSV = () => {
     try {
-      exportAnnualSummaryCSV(annualData);
+      const csvContent = exportAnnualSummaryCSV(members, payments, settings, parseInt(selectedYear));
+      const filename = `annual-summary-${selectedYear}.csv`;
+      const blob = new Blob([csvContent], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
       toast({
         title: 'CSV exported',
         description: 'Annual summary has been downloaded.'

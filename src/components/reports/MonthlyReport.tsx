@@ -106,7 +106,9 @@ export function MonthlyReport() {
 
   const handleExportPDF = async () => {
     try {
-      await exportMonthlyReportPDF(reportData, settings);
+      const [year, month] = selectedMonth.split('-').map(Number);
+      const reportDate = new Date(year, month - 1, 1);
+      await exportMonthlyReportPDF(members, payments, settings, reportDate);
       toast({
         title: 'PDF exported',
         description: 'Monthly report has been downloaded.'
@@ -122,7 +124,20 @@ export function MonthlyReport() {
 
   const handleExportCSV = () => {
     try {
-      exportMonthlyReportCSV(reportData);
+      const [year, month] = selectedMonth.split('-').map(Number);
+      const reportDate = new Date(year, month - 1, 1);
+      const csvContent = exportMonthlyReportCSV(members, payments, settings, reportDate);
+      const filename = `monthly-report-${year}-${month.toString().padStart(2, '0')}.csv`;
+      const blob = new Blob([csvContent], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
       toast({
         title: 'CSV exported',
         description: 'Monthly report has been downloaded.'

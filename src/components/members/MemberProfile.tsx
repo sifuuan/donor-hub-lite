@@ -175,6 +175,8 @@ export function MemberProfile() {
             <DialogContent className="max-w-2xl">
               <MemberForm 
                 member={member}
+                open={showEditForm}
+                onOpenChange={setShowEditForm}
               />
             </DialogContent>
           </Dialog>

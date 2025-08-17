@@ -30,11 +30,12 @@ type PaymentFormData = z.infer<typeof paymentSchema>;
 interface PaymentFormProps {
   payment?: Payment;
   preselectedMember?: Member;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  onSuccess?: () => void;
 }
 
-export function PaymentForm({ payment, preselectedMember, open, onOpenChange }: PaymentFormProps) {
+export function PaymentForm({ payment, preselectedMember, open = false, onOpenChange, onSuccess }: PaymentFormProps) {
   const { createPayment, updatePayment } = usePaymentsStore();
   const { createMessage } = useMessagesStore();
   const { members } = useMembersStore();
@@ -135,7 +136,8 @@ export function PaymentForm({ payment, preselectedMember, open, onOpenChange }: 
         });
       }
 
-      onOpenChange(false);
+      onOpenChange?.(false);
+      onSuccess?.();
       reset();
       setSelectedMember(null);
     } catch (error) {
